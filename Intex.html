@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo de Cookies Personalizadas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #cookie-banner {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        #cookie-banner button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #content, #cookie-info, #user-form, #news-form {
+            display: none;
+            padding: 20px;
+        }
+        #cookie-info, #user-form, #news-form {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        .news-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+        .news-item img, .news-item video {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="cookie-banner">
+        <span>Este sitio web utiliza cookies para mejorar su experiencia. ¿Acepta el uso de cookies?</span>
+        <button id="accept-cookies">Aceptar</button>
+    </div>
+
+    <div id="cookie-info">
+        <h2>Información sobre las cookies</h2>
+        <p>Al aceptar las cookies, usted está permitiendo que almacenemos información en su dispositivo para mejorar su experiencia de navegación. Esto incluye, pero no se limita a, la personalización de contenido y la recopilación de datos analíticos.</p>
+    </div>
+
+    <div id="user-form">
+        <h2>Información del Usuario</h2>
+        <form id="user-info-form">
+            <label for="name">Nombre:</label>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="email" required><br><br>
+            <label for="age">Edad:</label>
+            <input type="number" id="age" name="age" required><br><br>
+            <label for="city">Ciudad:</label>
+            <input type="text" id="city" name="city" required><br><br>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <div id="news-form">
+        <h2>Subir Noticia</h2>
+        <form id="news-upload-form">
+            <label for="news-title">Título de la Noticia:</label>
+            <input type="text" id="news-title" name="news-title" required><br><br>
+            <label for="news-content">Contenido de la Noticia:</label>
+            <textarea id="news-content" name="news-content" required></textarea><br><br>
+            <label for="news-image">Subir Imagen:</label>
+            <input type="file" id="news-image" name="news-image" accept="image/*"><br><br>
+            <label for="news-video">Subir Video:</label>
+            <input type="file" id="news-video" name="news-video" accept="video/*"><br><br>
+            <button type="submit">Subir Noticia</button>
+        </form>
+    </div>
+
+    <div id="content">
+        <h1 id="welcome-message">Bienvenido a nuestra página web</h1>
+        <p id="user-data"></p>
+        <h2>Noticias</h2>
+        <div id="news-container"></div>
+    </div>
+
+    <script>
+        document.getElementById('accept-cookies').addEventListener('click', function() {
+            document.getElementById('cookie-banner').style.display = 'none';
+            document.getElementById('cookie-info').style.display = 'none';
+            if (getCookie('name') && getCookie('email') && getCookie('age') && getCookie('city')) {
+                showContent();
+            } else {
+                document.getElementById('user-form').style.display = 'block';
+            }
+        });
+
+        document.getElementById('user-info-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var name = document.getElementById('name').value;
+            var email = document.getElementById('email').value;
+            var age = document.getElementById('age').value;
+            var city = document.getElementById('city').value;
+            setCookie('name', name, 365);
+            setCookie('email', email, 365);
+            setCookie('age', age, 365);
+            setCookie('city', city, 365);
+            showContent();
+        });
+
+        document.getElementById('news-upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var newsTitle = document.getElementById('news-title').value;
+            var newsContent = document.getElementById('news-content').value;
+            var newsImage = document.getElementById('news-image').files[0];
+            var newsVideo = document.getElementById('news-video').files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var newsHtml = '<div class="news-item">';
+                newsHtml += '<h3>' + newsTitle + '</h3>';
+                newsHtml += '<p>' + newsContent + '</p>';
+                if (newsImage) {
+                    newsHtml += '<img src="' + e.target.result + '" alt="Imagen de la noticia">';
+                }
+                if (newsVideo) {
+                    newsHtml += '<video controls><source src="' + URL.createObjectURL(newsVideo) + '" type="' + newsVideo.type + '"></video>';
+                }
+                newsHtml += '<p><small>Subido por: ' + getCookie('name') + ' (' + getCookie('email') + ')</small></p>';
+                newsHtml += '</div>';
+                document.getElementById('news-container').innerHTML += newsHtml;
+            };
+            if (newsImage) {
+                reader.readAsDataURL(newsImage);
+            } else {
+                reader.onload();
+            }
+        });
+
+        function showContent() {
+            var name = getCookie('name');
+            var email = getCookie('email');
+            var age = getCookie('age');
+            var city = getCookie('city');
+            document.getElementById('welcome-message').textContent = 'Bienvenido, ' + name;
+            document.getElementById('user-data').textContent = 'Correo Electrónico: ' + email + ', Edad: ' + age + ', Ciudad: ' + city;
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('user-form').style.display = 'none';
+            document.getElementById('news-form').style.display = 'block';
+        }
+
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for(var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('cookie-info').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
